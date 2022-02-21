@@ -4,12 +4,12 @@ class PlayerShip {
         modelLoader.load("../../assets/models/player_ship.glb", (obj) => {
             obj.scene.scale.set(5, 5, 5);
             obj.scene.position.set(0, 2, -15);
-            obj.scene.rotation.set(0, 0, 0);
             this.model = obj.scene;
             this.velocity = 0.1;
             scene.add(this.model);
 
-            // Adjusting the camera to look at the player
+            // Ensuring the camera looks at the player at all times
+            this.model.add(camera);
             camera.lookAt(this.model.position);
         });
     }

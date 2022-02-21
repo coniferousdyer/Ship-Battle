@@ -16,7 +16,7 @@ class SceneManager {
 
         // Camera
         this.camera = new THREE.PerspectiveCamera(-screenDimensions.width / 2, screenDimensions.width / screenDimensions.height, 0.1, 1000);
-        this.camera.position.set(0, 9.5, 2.5);
+        this.camera.position.set(0, 2, 3);
 
         const ambientLight = new THREE.AmbientLight('#FFFFFF', 1.5);
         this.scene.add(ambientLight);
@@ -30,6 +30,13 @@ class SceneManager {
     update() {
         for (let key in this.gameObjects) {
             this.gameObjects[key].update();
+        }
+
+        // The condition is bit of a hack to ensure no errors pop up at the 
+        // beginning. Here,  we ensure that the player ship is always in front 
+        // of the camera.
+        if (this.gameObjects.playerShip.model !== undefined) {
+            this.camera.lookAt(this.gameObjects.playerShip.model.position);
         }
 
         this.renderer.render(this.scene, this.camera);
