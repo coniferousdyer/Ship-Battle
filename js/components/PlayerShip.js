@@ -5,7 +5,7 @@ class PlayerShip {
             obj.scene.scale.set(5, 5, 5);
             obj.scene.position.set(0, 2, -15);
             this.model = obj.scene;
-            this.velocity = 0.1;
+            this.velocity = 0.4;
             scene.add(this.model);
 
             // Ensuring the camera looks at the player at all times
@@ -36,6 +36,4 @@ class PlayerShip {
                 break;
         }
     }
-
-    update() { }
 }
