@@ -16,20 +16,20 @@ class SceneManager {
 
         // Camera
         this.camera = new THREE.PerspectiveCamera(-screenDimensions.width / 2, screenDimensions.width / screenDimensions.height, 0.1, 1000);
-        this.camera.position.set(0, 10, 1);
+        this.camera.position.set(0, 9.5, 2.5);
 
-        const ambientLight = new THREE.AmbientLight('#ffffff', 1.5);
+        const ambientLight = new THREE.AmbientLight('#FFFFFF', 1.5);
         this.scene.add(ambientLight);
 
         // Creating scene objects
-        this.gameObjects = [];
+        this.gameObjects = {};
         this.createSceneObjects();
     }
 
     // Update the scene
     update() {
-        for (let obj of this.gameObjects) {
-            obj.update();
+        for (let key in this.gameObjects) {
+            this.gameObjects[key].update();
         }
 
         this.renderer.render(this.scene, this.camera);
@@ -37,10 +37,7 @@ class SceneManager {
 
     // Create the scene objects
     createSceneObjects() {
-        const world = new World(this.scene, this.renderer);
-        const playerShip = new PlayerShip(this.scene);
-
-        this.gameObjects.push(world);
-        this.gameObjects.push(playerShip);
+        this.gameObjects.world = new World(this.scene, this.renderer);
+        this.gameObjects.playerShip = new PlayerShip(this.scene, this.camera);
     }
 }

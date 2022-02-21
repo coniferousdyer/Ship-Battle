@@ -24,7 +24,21 @@ function onWindowResize() {
     sceneManager.renderer.setSize(screenDimensions.width, screenDimensions.height);
 }
 
-function onKeyDown(event) { }
+function onKeyDown(event) {
+    let playerShip = sceneManager.gameObjects.playerShip;
+    let camera = sceneManager.camera;
+
+    // Responding to input corresponding to the player
+    playerShip.processInput(event.key);
+
+    // Adjusting the camera to look at the player
+    const relativeCameraOffset = new THREE.Vector3(0, 1.5, 3.5);
+    const cameraOffset = relativeCameraOffset.applyMatrix4(playerShip.model.matrixWorld);
+    camera.position.x = cameraOffset.x;
+    camera.position.y = cameraOffset.y;
+    camera.position.z = cameraOffset.z;
+    camera.lookAt(playerShip.model.position);
+}
 
 function onKeyUp(event) { }
 
