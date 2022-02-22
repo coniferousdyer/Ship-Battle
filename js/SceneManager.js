@@ -24,6 +24,9 @@ class SceneManager {
         // Creating scene objects
         this.gameObjects = {};
         this.createSceneObjects();
+
+        // Keeping track of the number of iterations
+        this.iterations = 0;
     }
 
     // Generate a random number between min and max
@@ -33,16 +36,37 @@ class SceneManager {
 
     // Update the scene
     update() {
+        this.iterations = (this.iterations + 1) % 200;
+
         // The condition is bit of a hack to ensure no errors pop up at the 
         // beginning.
         if (this.gameObjects.playerShip.model !== undefined) {
             // Update the game world
             this.gameObjects.world.update();
 
-            // Update the enemies' movement
+            // Update the player ship
+            this.gameObjects.playerShip.updateBullets();
+
+            // Update the enemies' movement and bullets
             if (this.gameObjects.enemyShips.length > 0) {
                 this.gameObjects.enemyShips.forEach((enemyShip) => {
-                    enemyShip.move(this.gameObjects.playerShip.model.position);
+                    if (enemyShip.model !== undefined) {
+                        // Update the enemy's movement
+                        enemyShip.move(this.gameObjects.playerShip.model.position);
+                        
+                        // Shoot a bullet if the enemy is within a certain distance of the player.
+                        // Bullets are fired once every 200 iterations.
+                        const playerShipPosition = this.gameObjects.playerShip.model.position;
+                        const enemyShipPosition = enemyShip.model.position;
+                        if (Math.abs(playerShipPosition.x - enemyShipPosition.x) < 50 && Math.abs(playerShipPosition.z - enemyShipPosition.z) < 50) {
+                            if (this.iterations === 0) {
+                                enemyShip.shoot();
+                            }
+                        }
+
+                        // Update existing bullets' movement
+                        enemyShip.updateBullets();
+                    }
                 });
             }
 
@@ -70,9 +94,7 @@ class SceneManager {
         // The following are the dynamic objects that are added to the scene.
         // We initialize them as empty arrays, and we can add and remove objects 
         // as required.
-        this.gameObjects.playerBullets = [];
         this.gameObjects.enemyShips = [];
-        this.gameObjects.enemyBullets = [];
         this.gameObjects.treasureChests = [];
     }
 
@@ -89,9 +111,12 @@ class SceneManager {
                 y: 2,
                 z: playerShipPosition.z + this.randomNumber(-250, 250)
             };
+            // TODO: Make it a range
         } while (position.x === playerShipPosition.x && position.z === playerShipPosition.z);
 
         const enemyShip = new EnemyShip(this.scene, position);
         this.gameObjects.enemyShips.push(enemyShip);
     }
 }
+
+// TODO: Make plane infinite
