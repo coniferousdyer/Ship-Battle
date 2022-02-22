@@ -7,6 +7,7 @@ class EnemyShip {
             this.model = obj.scene;
             this.velocity = 0.1;
             this.bullets = [];
+            this.health = 100;
 
             // We need to store the scene so we can add the bullets to it
             this.scene = scene;
@@ -41,6 +42,29 @@ class EnemyShip {
             this.bullets.forEach((bullet) => {
                 bullet.move();
             });
+        }
+    }
+
+    // Destroy the enemy ship
+    destroy() {
+        if (this.model !== undefined) {
+            // Remove the bullets from the scene
+            this.bullets.forEach((bullet) => {
+                bullet.destroy();
+            });
+
+            this.scene.remove(this.model);
+            this.model = undefined;
+        }
+    }
+
+    // Receive a hit from the player
+    receiveHit() {
+        if (this.model !== undefined) {
+            this.health -= 25;
+            if (this.health <= 0) {
+                this.destroy();
+            }
         }
     }
 }

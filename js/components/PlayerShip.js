@@ -7,6 +7,9 @@ class PlayerShip {
             this.model = obj.scene;
             this.velocity = 0.4;
             this.bullets = [];
+            this.health = 100;
+            this.treasureCollected = 0;
+            this.shipsDestroyed = 0;
 
             // We need to store the scene so we can add the bullets to it
             this.scene = scene;
@@ -61,5 +64,38 @@ class PlayerShip {
                 bullet.move();
             });
         }
+    }
+
+    // Destroy the player's ship
+    destroy() {
+        if (this.model !== undefined) {
+            // Remove the bullets from the scene
+            this.bullets.forEach((bullet) => {
+                bullet.destroy();
+            });
+
+            this.scene.remove(this.model);
+            this.model = undefined;
+        }
+    }
+
+    // Receive a hit from an enemy
+    receiveHit() {
+        if (this.model !== undefined) {
+            this.health -= 5;
+            if (this.health <= 0) {
+                this.destroy();
+            }
+        }
+    }
+
+    // Destroy an enemy ship and increase the player's score
+    destroyShip() {
+        this.shipsDestroyed++;
+    }
+
+    // Collect a treasure chest and increase the player's score
+    collectTreasure() {
+        this.treasureCollected++;
     }
 }
