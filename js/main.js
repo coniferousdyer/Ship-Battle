@@ -6,13 +6,16 @@ canvas.height = window.innerHeight;
 // Creating and initializing our Three.js scene
 const sceneManager = new SceneManager(canvas);
 
+// Keep track of the starting time so that we can calculate the time passed
+let startTime = Date.now();
+
 // Set up listeners for DOM events
 function bindEvents() {
     window.addEventListener("resize", onWindowResize);
     window.addEventListener("keydown", onKeyDown);
-    window.addEventListener("keyup", onKeyUp);
 }
 
+// Resize the canvas when the window is resized
 function onWindowResize() {
     const screenDimensions = {
         width: window.innerWidth,
@@ -24,19 +27,45 @@ function onWindowResize() {
     sceneManager.renderer.setSize(screenDimensions.width, screenDimensions.height);
 }
 
+// Keydown event handler
 function onKeyDown(event) {
-    let playerShip = sceneManager.gameObjects.playerShip;
-
-    // Responding to input corresponding to the player
-    playerShip.processInput(event.key);
+    if (event.key === "1") {
+        sceneManager.cameraView = 0;
+    } else if (event.key === "2") {
+        sceneManager.cameraView = 1;
+    } else {
+        // Responding to input corresponding to the player
+        let playerShip = sceneManager.gameObjects.playerShip;
+        playerShip.processInput(event.key);
+    }
 }
 
-function onKeyUp(event) { }
+// Function to update the statistics of the game
+function updateHUD() {
+    const playerShip = sceneManager.gameObjects.playerShip;
+
+    if (playerShip.model !== undefined) {
+        let treasureCollected = document.getElementById("treasure-collected");
+        let shipsDestroyed = document.getElementById("ships-destroyed");
+        let health = document.getElementById("health");
+        let time = document.getElementById("time");
+
+        treasureCollected.innerHTML = "Treasure Collected: " + playerShip.treasureCollected.toString();
+        shipsDestroyed.innerHTML = "Ships Destroyed: " + playerShip.shipsDestroyed.toString();
+        health.innerHTML = "Health: " + playerShip.health.toString();
+        time.innerHTML = "Time Passed: " + ((Date.now() - startTime) / 1000).toString();
+    }
+}
 
 // Render loop
 function render() {
     sceneManager.update();
-    requestAnimationFrame(render);
+    updateHUD();
+
+    // If the game is not yet over, call render again
+    if (sceneManager.gameState === 0) {
+        requestAnimationFrame(render);
+    }
 }
 
 // Performing actions

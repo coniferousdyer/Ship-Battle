@@ -81,16 +81,11 @@ class PlayerShip {
 
     // Receive a hit from an enemy
     receiveHit() {
-        if (this.model !== undefined) {
-            this.health -= 5;
-            if (this.health <= 0) {
-                this.destroy();
-            }
-        }
+        this.health -= 5;
     }
 
     // Destroy an enemy ship and increase the player's score
-    destroyShip() {
+    destroyEnemyShip() {
         this.shipsDestroyed++;
     }
 

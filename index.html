@@ -5,10 +5,22 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="css/styles.css">
     <title>3D Game</title>
 </head>
 
 <body>
+    <!-- The HUD -->
+    <div id="HUD">
+        <div id="treasure-collected">Treasure Collected: 0</div>
+        <div id="ships-destroyed">Ships Destroyed: 0</div>
+        <div id="health">Health: 100</div>
+        <div id="time">Time Passed: 0</div>
+    </div>
+
+    <!-- The Game Over screen -->
+    <div id="game-over"></div>
+    
     <!-- The game screen -->
     <canvas id="canvas"></canvas>
 

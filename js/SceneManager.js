@@ -18,8 +18,8 @@ class SceneManager {
         this.camera = new THREE.PerspectiveCamera(-screenDimensions.width / 2, screenDimensions.width / screenDimensions.height, 0.1, 1000);
         this.camera.position.set(0, 2, 3);
 
-        const ambientLight = new THREE.AmbientLight('#FFFFFF', 1.5);
-        this.scene.add(ambientLight);
+        const light = new THREE.DirectionalLight(0x404040, 10);
+        this.scene.add(light);
 
         // Creating scene objects
         this.gameObjects = {};
@@ -27,6 +27,14 @@ class SceneManager {
 
         // Keeping track of the number of iterations
         this.iterations = 0;
+
+        // A variable to keep track of the current camera view.
+        // 0 = third-person view, 1 = bird's-eye view
+        this.cameraView = 0;
+
+        // A variable to keep track of the current game state
+        // 0 = playing, 1 = game over
+        this.gameState = 0;
     }
 
     // Generate a random number between min and max
@@ -48,36 +56,24 @@ class SceneManager {
             this.gameObjects.playerShip.updateBullets();
 
             // Update the enemies' movement and bullets
-            if (this.gameObjects.enemyShips.length > 0) {
-                this.gameObjects.enemyShips.forEach((enemyShip) => {
-                    if (enemyShip.model !== undefined) {
-                        // Update the enemy's movement
-                        enemyShip.move(this.gameObjects.playerShip.model.position);
+            this.updateEnemyShips();
 
-                        // Shoot a bullet if the enemy is within a certain distance of the player.
-                        // Bullets are fired once every 200 iterations.
-                        const playerShipPosition = this.gameObjects.playerShip.model.position;
-                        const enemyShipPosition = enemyShip.model.position;
-                        if (Math.abs(playerShipPosition.x - enemyShipPosition.x) < 50 && Math.abs(playerShipPosition.z - enemyShipPosition.z) < 50) {
-                            if (this.iterations === 0) {
-                                enemyShip.shoot();
-                            }
-                        }
+            // Check for collisions with enemies
+            this.checkPlayerEnemyCollisions();
 
-                        // Update existing bullets' movement
-                        enemyShip.updateBullets();
-                    }
-                });
+            // If the game ended
+            if (this.gameState === 1) {
+                return;
             }
 
-            // Check for collisions
-            this.checkPlayerEnemyCollisions();
+            // Check for collisions with treasure chests
             this.checkPlayerTreasureCollisions();
 
-            // We ensure that the player ship is always in front of the camera
-            if (this.gameObjects.playerShip.model !== undefined) {
-                this.camera.lookAt(this.gameObjects.playerShip.model.position);
-            }
+            // Destroy far away bullets
+            this.destroyFarAwayBullets();
+
+            // Adjust the camera to follow the player ship
+            this.adjustCamera();
 
             // Randomly generate enemies with a probability of 1 in 1000. We
             // place a limit of 5 enemies in the scene to reduce the amount of
@@ -147,6 +143,31 @@ class SceneManager {
         this.gameObjects.treasureChests.push(treasureChest);
     }
 
+    // Update the enemies' movement and bullets
+    updateEnemyShips() {
+        if (this.gameObjects.enemyShips.length > 0) {
+            this.gameObjects.enemyShips.forEach((enemyShip) => {
+                if (enemyShip.model !== undefined) {
+                    // Update the enemy's movement
+                    enemyShip.move(this.gameObjects.playerShip.model.position);
+
+                    // Shoot a bullet if the enemy is within a certain distance of the player.
+                    // Bullets are fired once every 200 iterations.
+                    const playerShipPosition = this.gameObjects.playerShip.model.position;
+                    const enemyShipPosition = enemyShip.model.position;
+                    if (Math.abs(playerShipPosition.x - enemyShipPosition.x) < 50 && Math.abs(playerShipPosition.z - enemyShipPosition.z) < 50) {
+                        if (this.iterations === 0) {
+                            enemyShip.shoot();
+                        }
+                    }
+
+                    // Update existing bullets' movement
+                    enemyShip.updateBullets();
+                }
+            });
+        }
+    }
+
     // Check if a collision has occurred between any two objects
     isCollision(object1, object2) {
         if (object1.model === undefined || object2.model === undefined) {
@@ -169,11 +190,11 @@ class SceneManager {
                     this.gameObjects.playerShip.bullets.forEach((bullet) => {
                         if (this.isCollision(enemyShip, bullet)) {
                             enemyShip.receiveHit();
-                            
+
                             // Increase player score and remove enemy from the enemy ship array
                             if (enemyShip.health <= 0) {
                                 this.gameObjects.enemyShips.splice(this.gameObjects.enemyShips.indexOf(enemyShip), 1);
-                                this.gameObjects.playerShip.destroyShip();
+                                this.gameObjects.playerShip.destroyEnemyShip();
                             }
 
                             // Remove the bullet from the scene and the player's bullet array
@@ -186,9 +207,20 @@ class SceneManager {
                     enemyShip.bullets.forEach((bullet) => {
                         if (this.isCollision(this.gameObjects.playerShip, bullet)) {
                             this.gameObjects.playerShip.receiveHit();
-                            
-                            // TODO: Add an exit condition
-                            
+
+                            // This is the end of the game
+                            if (this.gameObjects.playerShip.health <= 0) {
+                                const gameOver = document.getElementById('game-over');
+                                gameOver.innerHTML = "GAME OVER";
+
+                                // Set the game state to 'game over'
+                                this.gameState = 1;
+
+                                // Destroy the player ship and break out of the loop
+                                this.gameObjects.playerShip.destroy();
+                                return;
+                            }
+
                             // Remove the bullet from the scene and the enemy's bullet array
                             bullet.destroy();
                             enemyShip.bullets.splice(enemyShip.bullets.indexOf(bullet), 1);
@@ -220,6 +252,50 @@ class SceneManager {
                     }
                 }
             });
+        }
+    }
+
+    // Destroy far away bullets
+    destroyFarAwayBullets() {
+        // Player bullets
+        this.gameObjects.playerShip.bullets.forEach((bullet) => {
+            if (bullet.model !== undefined) {
+                if (bullet.model.position.distanceTo(this.gameObjects.playerShip.model.position) > 1000) {
+                    bullet.destroy();
+                    this.gameObjects.playerShip.bullets.splice(this.gameObjects.playerShip.bullets.indexOf(bullet), 1);
+                }
+            }
+        });
+
+        // Enemy bullets
+        this.gameObjects.enemyShips.forEach((enemyShip) => {
+            if (enemyShip.model !== undefined) {
+                enemyShip.bullets.forEach((bullet) => {
+                    if (bullet.model !== undefined) {
+                        if (bullet.model.position.distanceTo(enemyShip.model.position) > 1000) {
+                            bullet.destroy();
+                            enemyShip.bullets.splice(enemyShip.bullets.indexOf(bullet), 1);
+                        }
+                    }
+                });
+            }
+        });
+    }
+
+    // Adjust the camera to follow the player ship
+    adjustCamera() {
+        // We ensure that the player ship is always in front of the camera
+        if (this.gameObjects.playerShip.model !== undefined) {
+            // Update camera position
+            if (this.cameraView === 0) {
+                // Third-person view
+                this.camera.position.set(0, 2, 3);
+            } else if (this.cameraView === 1) {
+                // Bird's-eye view
+                this.camera.position.set(0, 10, 0.1);
+            }
+
+            this.camera.lookAt(this.gameObjects.playerShip.model.position);
         }
     }
 }

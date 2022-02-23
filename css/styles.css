@@ -1,4 +1,29 @@
+@import url('https://fonts.googleapis.com/css2?family=Oswald:wght@700&display=swap');
+
 body {
     margin: 0;
     padding: 0;
+}
+
+#HUD {
+    position: absolute;
+    top: 0;
+    left: 0;
+    margin: 20px;
+    padding: 20px;
+    border: 3px solid black;
+    z-index: 1;
+    color: black;
+    font-size: 20px;
+    font-family: 'Oswald', sans-serif;
+}
+
+#game-over {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 50px;
+    font-family: 'Oswald', sans-serif;
+    color: red;
 }
