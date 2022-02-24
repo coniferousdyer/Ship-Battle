@@ -54,7 +54,6 @@ class EnemyShip {
             });
 
             this.scene.remove(this.model);
-            this.model = undefined;
         }
     }
 

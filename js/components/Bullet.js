@@ -31,7 +31,6 @@ class Bullet {
     destroy() {
         if (this.model !== undefined) {
             this.scene.remove(this.model);
-            this.model = undefined;
         }
     }
 }

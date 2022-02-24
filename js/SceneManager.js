@@ -21,6 +21,18 @@ class SceneManager {
         const light = new THREE.DirectionalLight(0x404040, 10);
         this.scene.add(light);
 
+        // Audio
+        const listener = new THREE.AudioListener();
+        this.camera.add(listener);
+        const sound = new THREE.Audio(listener);
+        const audioLoader = new THREE.AudioLoader();
+        audioLoader.load('../assets/sounds/music.mp3', (buffer) => {
+            sound.setBuffer(buffer);
+            sound.setLoop(true);
+            sound.setVolume(0.5);
+            sound.play();
+        });
+
         // Creating scene objects
         this.gameObjects = {};
         this.createSceneObjects();
@@ -60,6 +72,9 @@ class SceneManager {
 
             // Check for collisions with enemies
             this.checkPlayerEnemyCollisions();
+
+            // Update explosions
+            this.updateExplosions();
 
             // If the game ended
             if (this.gameState === 1) {
@@ -101,6 +116,7 @@ class SceneManager {
         // as required.
         this.gameObjects.enemyShips = [];
         this.gameObjects.treasureChests = [];
+        this.gameObjects.explosions = [];
     }
 
     // Create an enemy
@@ -168,6 +184,17 @@ class SceneManager {
         }
     }
 
+    // Update explosions
+    updateExplosions() {
+        this.gameObjects.explosions.forEach((explosion) => {
+            explosion.update();
+            if (explosion.time >= 10) {
+                explosion.destroy();
+                this.gameObjects.explosions.splice(this.gameObjects.explosions.indexOf(explosion), 1);
+            }
+        });
+    }
+
     // Check if a collision has occurred between any two objects
     isCollision(object1, object2) {
         if (object1.model === undefined || object2.model === undefined) {
@@ -193,8 +220,16 @@ class SceneManager {
 
                             // Increase player score and remove enemy from the enemy ship array
                             if (enemyShip.health <= 0) {
+                                // Create a bigger explosion
+                                const explosion = new Explosion(this.scene, enemyShip.model.position, 5);
+                                this.gameObjects.explosions.push(explosion);
+
                                 this.gameObjects.enemyShips.splice(this.gameObjects.enemyShips.indexOf(enemyShip), 1);
                                 this.gameObjects.playerShip.destroyEnemyShip();
+                            } else {
+                                // Create a smaller explosion
+                                const explosion = new Explosion(this.scene, enemyShip.model.position, 1);
+                                this.gameObjects.explosions.push(explosion);
                             }
 
                             // Remove the bullet from the scene and the player's bullet array
@@ -210,20 +245,32 @@ class SceneManager {
 
                             // This is the end of the game
                             if (this.gameObjects.playerShip.health <= 0) {
+                                // Create a bigger explosion
+                                const explosion = new Explosion(this.scene, this.gameObjects.playerShip.model.position, 5);
+                                this.gameObjects.explosions.push(explosion);
+
                                 const gameOver = document.getElementById('game-over');
                                 gameOver.innerHTML = "GAME OVER";
 
                                 // Set the game state to 'game over'
                                 this.gameState = 1;
 
-                                // Destroy the player ship and break out of the loop
+                                // Destroy the player ship
                                 this.gameObjects.playerShip.destroy();
-                                return;
+                            } else {
+                                // Create a smaller explosion
+                                const explosion = new Explosion(this.scene, this.gameObjects.playerShip.model.position, 1);
+                                this.gameObjects.explosions.push(explosion);
                             }
 
                             // Remove the bullet from the scene and the enemy's bullet array
                             bullet.destroy();
                             enemyShip.bullets.splice(enemyShip.bullets.indexOf(bullet), 1);
+
+                            // If game has ended, break out of the loop
+                            if (this.gameState === 1) {
+                                return;
+                            }
                         }
                     });
 
