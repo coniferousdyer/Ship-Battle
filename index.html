@@ -20,16 +20,21 @@
 
     <!-- The Game Over screen -->
     <div id="game-over"></div>
-    
+
     <!-- The game screen -->
     <canvas id="canvas"></canvas>
+
+    <!-- Adding audio for sound effects -->
+    <audio id="game-over-audio" src="assets/sounds/game-over.mp3" volume="1"></audio>
+    <audio id="explosion-audio" src="assets/sounds/explosion.mp3" volume="1"></audio>
+    <audio id="treasure-audio" src="assets/sounds/treasure-collection.mp3" volume="1"></audio>
 
     <!-- The library files -->
     <script src="js/lib/three.js"></script>
     <script src="js/lib/Water.js"></script>
     <script src="js/lib/Sky.js"></script>
     <script src="js/lib/GLTFLoader.js"></script>
-    
+
     <!-- The game scripts -->
     <script src="js/components/World.js"></script>
     <script src="js/components/Explosion.js"></script>

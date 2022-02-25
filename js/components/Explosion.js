@@ -8,6 +8,10 @@ class Explosion {
             this.scene = scene;
             this.time = 0;
             scene.add(this.model);
+
+            // Adding the explosion sound effect
+            const audio = new Audio('../../assets/sounds/explosion.mp3');
+            audio.play();
         });
     }
 

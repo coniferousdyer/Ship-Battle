@@ -9,6 +9,9 @@ const sceneManager = new SceneManager(canvas);
 // Keep track of the starting time so that we can calculate the time passed
 let startTime = Date.now();
 
+// Check if the keydown event listener has been added
+let keyDownEventListenerActive = true;
+
 // Set up listeners for DOM events
 function bindEvents() {
     window.addEventListener("resize", onWindowResize);
@@ -60,12 +63,17 @@ function updateHUD() {
 // Render loop
 function render() {
     sceneManager.update();
+
+    // Update the HUD
     updateHUD();
 
-    // If the game is not yet over, call render again
-    if (sceneManager.gameState === 0) {
-        requestAnimationFrame(render);
+    // If the game is over, remove the keydown event listener
+    if (sceneManager.gameState === 1 && keyDownEventListenerActive) {
+        window.removeEventListener("keydown", onKeyDown);
+        keyDownEventListenerActive = false;
     }
+
+    requestAnimationFrame(render);
 }
 
 // Performing actions

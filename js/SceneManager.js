@@ -24,13 +24,13 @@ class SceneManager {
         // Audio
         const listener = new THREE.AudioListener();
         this.camera.add(listener);
-        const sound = new THREE.Audio(listener);
+        this.sound = new THREE.Audio(listener);
         const audioLoader = new THREE.AudioLoader();
         audioLoader.load('../assets/sounds/music.mp3', (buffer) => {
-            sound.setBuffer(buffer);
-            sound.setLoop(true);
-            sound.setVolume(0.5);
-            sound.play();
+            this.sound.setBuffer(buffer);
+            this.sound.setLoop(true);
+            this.sound.setVolume(0.5);
+            this.sound.play();
         });
 
         // Creating scene objects
@@ -47,6 +47,9 @@ class SceneManager {
         // A variable to keep track of the current game state
         // 0 = playing, 1 = game over
         this.gameState = 0;
+
+        // The final position of the player ship before game is over
+        this.finalPlayerPosition = new THREE.Vector3(0, 0, 0);
     }
 
     // Generate a random number between min and max
@@ -56,6 +59,21 @@ class SceneManager {
 
     // Update the scene
     update() {
+        // If the game has ended, do not update the scene, only update the camera position
+        // to give a zoom-out effect.
+        if (this.gameState === 1) {
+            if (this.camera.position.distanceTo(this.finalPlayerPosition) <= 500) {
+                this.camera.position.x += 0.5;
+                this.camera.position.y += 0.5;
+                this.camera.rotation.y += 0.1;
+            }
+
+            this.camera.lookAt(this.finalPlayerPosition);
+            this.renderer.render(this.scene, this.camera);
+
+            return;
+        }
+
         this.iterations = (this.iterations + 1) % 200;
 
         // The condition is bit of a hack to ensure no errors pop up at the 
@@ -249,13 +267,18 @@ class SceneManager {
                                 const explosion = new Explosion(this.scene, this.gameObjects.playerShip.model.position, 5);
                                 this.gameObjects.explosions.push(explosion);
 
+                                // Display the game over screen and add sound effects
                                 const gameOver = document.getElementById('game-over');
+                                const gameOverAudio = document.getElementById('game-over-audio');
                                 gameOver.innerHTML = "GAME OVER";
+                                this.sound.stop();
+                                gameOverAudio.play();
 
                                 // Set the game state to 'game over'
                                 this.gameState = 1;
 
-                                // Destroy the player ship
+                                // Storing the final position and destroying the player ship
+                                this.finalPlayerPosition = this.gameObjects.playerShip.model.position;
                                 this.gameObjects.playerShip.destroy();
                             } else {
                                 // Create a smaller explosion
@@ -292,6 +315,10 @@ class SceneManager {
                     if (this.isCollision(this.gameObjects.playerShip, treasureChest)) {
                         // Increase player score
                         this.gameObjects.playerShip.collectTreasure();
+
+                        // Add a sound effect
+                        const audio = document.getElementById('treasure-audio');
+                        audio.play();
 
                         // Remove the treasure chest from the scene and the treasure chest array
                         treasureChest.destroy();
