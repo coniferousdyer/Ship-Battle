@@ -5,7 +5,6 @@ class Bullet {
             obj.scene.scale.set(0.5, 0.5, 0.5);
             obj.scene.position.set(position.x, position.y, position.z - 3);
 
-            // TODO: Rotate around ship's center
             // If the bullet is fired by the player, we need to fire it in the opposite direction
             if (player) {
                 obj.scene.rotation.set(rotation.x, rotation.y - Math.PI, rotation.z);

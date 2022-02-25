@@ -150,7 +150,6 @@ class SceneManager {
                 y: 2,
                 z: playerShipPosition.z + this.randomNumber(-250, 250)
             };
-            // TODO: Make it a range
         } while (position.x === playerShipPosition.x && position.z === playerShipPosition.z);
 
         const enemyShip = new EnemyShip(this.scene, position);
@@ -170,7 +169,6 @@ class SceneManager {
                 y: 2,
                 z: playerShipPosition.z + this.randomNumber(-250, 250)
             };
-            // TODO: Make it a range
         } while (position.x === playerShipPosition.x && position.z === playerShipPosition.z);
 
         const treasureChest = new TreasureChest(this.scene, position);
@@ -263,23 +261,7 @@ class SceneManager {
 
                             // This is the end of the game
                             if (this.gameObjects.playerShip.health <= 0) {
-                                // Create a bigger explosion
-                                const explosion = new Explosion(this.scene, this.gameObjects.playerShip.model.position, 5);
-                                this.gameObjects.explosions.push(explosion);
-
-                                // Display the game over screen and add sound effects
-                                const gameOver = document.getElementById('game-over');
-                                const gameOverAudio = document.getElementById('game-over-audio');
-                                gameOver.innerHTML = "GAME OVER";
-                                this.sound.stop();
-                                gameOverAudio.play();
-
-                                // Set the game state to 'game over'
-                                this.gameState = 1;
-
-                                // Storing the final position and destroying the player ship
-                                this.finalPlayerPosition = this.gameObjects.playerShip.model.position;
-                                this.gameObjects.playerShip.destroy();
+                                this.endGame();
                             } else {
                                 // Create a smaller explosion
                                 const explosion = new Explosion(this.scene, this.gameObjects.playerShip.model.position, 1);
@@ -297,11 +279,27 @@ class SceneManager {
                         }
                     });
 
-                    // Player ship hit enemy TODO
-                    // if (this.isCollision(this.gameObjects.playerShip, enemyShip)) {
-                    //     this.gameObjects.playerShip.receiveHit();
-                    //     enemyShip.receiveHit();
-                    // }
+                    // Player ship hit enemy
+                    if (this.isCollision(this.gameObjects.playerShip, enemyShip)) {
+                        // this.gameObjects.playerShip.receiveHit();
+                        // enemyShip.receiveHit();
+
+                        // Create a bigger explosion
+                        const explosion = new Explosion(this.scene, this.gameObjects.playerShip.model.position, 5);
+                        this.gameObjects.explosions.push(explosion);
+
+                        // Destroy the enemy ship
+                        enemyShip.destroy();
+                        this.gameObjects.enemyShips.splice(this.gameObjects.enemyShips.indexOf(enemyShip), 1);
+
+                        // Decrease the player's health
+                        this.gameObjects.playerShip.receiveCollision();
+
+                        // This is the end of the game
+                        if (this.gameObjects.playerShip.health <= 0) {
+                            this.endGame();
+                        }
+                    }
                 }
             });
         }
@@ -372,8 +370,25 @@ class SceneManager {
             this.camera.lookAt(this.gameObjects.playerShip.model.position);
         }
     }
-}
 
-// TODO: Make plane infinite
-// TODO: Use distanceTo wherever needed
-// TODO: Change models
+    // End the game
+    endGame() {
+        // Create a bigger explosion
+        const explosion = new Explosion(this.scene, this.gameObjects.playerShip.model.position, 5);
+        this.gameObjects.explosions.push(explosion);
+
+        // Display the game over screen and add sound effects
+        const gameOver = document.getElementById('game-over');
+        const gameOverAudio = document.getElementById('game-over-audio');
+        gameOver.innerHTML = "GAME OVER";
+        this.sound.stop();
+        gameOverAudio.play();
+
+        // Set the game state to 'game over'
+        this.gameState = 1;
+
+        // Storing the final position and destroying the player ship
+        this.finalPlayerPosition = this.gameObjects.playerShip.model.position;
+        this.gameObjects.playerShip.destroy();
+    }
+}

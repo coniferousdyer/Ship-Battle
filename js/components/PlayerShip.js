@@ -83,6 +83,11 @@ class PlayerShip {
         this.health -= 5;
     }
 
+    // Receive a collision with an enemy ship
+    receiveCollision() {
+        this.health -= 20;
+    }
+
     // Destroy an enemy ship and increase the player's score
     destroyEnemyShip() {
         this.shipsDestroyed++;
